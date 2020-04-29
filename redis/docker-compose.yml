@@ -1,0 +1,12 @@
+version: '3.1'
+services:
+  master:
+    image: redis
+    container_name: redis-master
+    restart: always
+    ports:
+      - 16379:6379
+    command: ["redis-server","/etc/redis/redis.conf", "--appendonly", "yes", "--requirepass","bdth-redis@2019"]
+    volumes:
+      - ./data/redis-master:/data
+      - ./conf/redis-master:/etc/redis

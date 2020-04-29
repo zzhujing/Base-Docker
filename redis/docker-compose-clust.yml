@@ -1,0 +1,75 @@
+version: '3.1'
+services:
+  master:
+    image: redis
+    container_name: redis-master
+    command: redis-server --appendonly yes --requirepass bdth-redis@2019 --masterauth bdth-redis@2019
+    ports:
+      - "16379:6379"
+    networks:
+      - cloud
+    volumes:
+      - ./data/redis-master:/data
+  slave1:
+    image: redis
+    container_name: redis-slave-1
+    ports:
+      - "16380:6379"           ## 暴露端口
+    command: redis-server --slaveof redis-master 6379 --appendonly yes --requirepass bdth-redis@2019 --masterauth bdth-redis@2019
+    volumes:
+      - ./data/slave1:/data
+    depends_on:
+      - master
+    networks:
+      - cloud
+  slave2:
+    image: redis
+    container_name: redis-slave-2
+    ports:
+      - "16381:6379"           ## 暴露端口
+    command: redis-server --slaveof redis-master 6379 --appendonly yes --requirepass bdth-redis@2019 --masterauth bdth-redis@2019
+    volumes:
+      - ./data/slave2:/data
+    depends_on:
+      - master
+    networks:
+      - cloud
+  # sentinel哨兵集群
+  sentinel1:
+    image: redis
+    container_name: redis-sentinel-1
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    ports:
+      - "26379:26379"
+    volumes:
+      - ./sentinel/sentinel1.conf:/usr/local/etc/redis/sentinel.conf
+    networks:
+      - cloud
+  sentinel2:
+    image: redis
+    container_name: redis-sentinel-2
+    ports:
+      - "26380:26379"
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./sentinel/sentinel2.conf:/usr/local/etc/redis/sentinel.conf
+    networks:
+      - cloud
+  sentinel3:
+    image: redis
+    container_name: redis-sentinel-3
+    ports:
+      - "26381:26379"
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./sentinel/sentinel3.conf:/usr/local/etc/redis/sentinel.conf
+    networks:
+      - cloud
+networks:
+  #使用已经存在的网络cloud_trace
+  cloud:
+    external:
+      name: cloud_trace
+  # 使用xxxName表示的xxx网络，此时docker-compose会自动生成xx网络
+#  xxxName:
+#    driver: xxx
